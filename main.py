@@ -16,7 +16,7 @@ camera_hotkeys = [Key.f1, Key.f2, Key.f3, Key.f4, Key.f5, Key.f6]
 inject_hotkey = 'w'
 minimum_time_window = timedelta(seconds=.6)
 min_timer_value = 0
-cycle_length = timedelta(seconds=5)
+cycle_length = timedelta(seconds=31)  # change 31 to the exact time the queens get 25 energy
 throbbing_frequency = timedelta(seconds=0.1)
 miss_click_tolerance = 2
 

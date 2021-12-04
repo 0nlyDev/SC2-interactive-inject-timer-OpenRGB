@@ -4,7 +4,7 @@ SC2 Interactive Inject Timer is a tool intended for Zerg players to help hit the
 
 Features:
 - Light indicators on your peripherals RGB Lighting(Keyboard, Mouse or other software controllable devices with RGB lighting)
-- Voice reminders (to be implemented)
+- Voice reminders
 - Detailed stats log for your injects (to be implemented as a file, currently only available in terminal output)
 - Automatic start of timers from the time of your first inject
 

@@ -1,3 +1,4 @@
+import sys
 import threading
 import time
 from datetime import datetime, timedelta
@@ -5,6 +6,7 @@ from datetime import datetime, timedelta
 from pynput.keyboard import Key, Listener
 from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
+from playsound import playsound
 
 client = OpenRGBClient()
 print(client)
@@ -30,6 +32,10 @@ class Timer(object):
         self.first_reset = False
         self.rgb_time_off = datetime.now() + throbbing_frequency
         self.rgb_on_off = True
+        self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': ''})
+
+    def create_sound_thread(self, sound):
+        self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': sound})
 
     def update_last_reset(self):
         self.last_reset = datetime.now() + cycle_length
@@ -54,6 +60,8 @@ def get_key(key):
         if key == stop_timers:
             timer.first_reset = False
             last_two_keys_pressed.clear()
+            timer.create_sound_thread(r'sounds\\deactivated.wav')
+            timer.sound_thread.start()
             print('Deactivated - Inject a hatchery and the Macro Cycle Timers will start automatically')
         elif key in camera_hotkeys:
             last_two_keys_pressed.append([key, datetime.now()])
@@ -124,6 +132,10 @@ def throbbing_rgb(on_off):
     return 0
 
 
+def play_sound(sound=None):
+    playsound(sound)
+
+
 def update_rgb():
     # run continuous
     while True:
@@ -138,7 +150,9 @@ def update_rgb():
             if timer.first_reset:
                 red_val = throbbing_rgb(timer.rgb_on_off)
                 print('!!!INJECT!!!')
-
+                if not timer.sound_thread.is_alive():
+                    timer.create_sound_thread(r'sounds\\inject.wav')
+                    timer.sound_thread.start()
             if red_val == 255:
                 green_val = 0
             else:

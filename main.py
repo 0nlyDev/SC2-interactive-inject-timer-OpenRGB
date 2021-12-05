@@ -12,13 +12,16 @@ client = OpenRGBClient()
 print(client)
 print(client.devices)
 client.clear()
+[d.set_mode('direct') for d in client.devices]
 
-stop_timers = Key.f8
 camera_hotkeys = [Key.f1, Key.f2, Key.f3, Key.f4, Key.f5, Key.f6]
+stop_timers_hotkey = Key.f10
+reset_timers_hotkey = Key.f8
 inject_hotkey = 'w'
-minimum_time_window = timedelta(seconds=.6)
+voice_alerts = True
+minimum_time_window = timedelta(seconds=1.1)
 min_timer_value = 0
-cycle_length = timedelta(seconds=31)  # change 31 to the exact time the queens get 25 energy
+cycle_length = timedelta(seconds=30)
 throbbing_frequency = timedelta(seconds=0.1)
 miss_click_tolerance = 2
 
@@ -57,12 +60,16 @@ def main():
 def get_key(key):
     # print('Key pressed:', key)
     try:
-        if key == stop_timers:
+        if key == stop_timers_hotkey:
             timer.first_reset = False
             last_two_keys_pressed.clear()
             timer.create_sound_thread(r'sounds\\deactivated.wav')
             timer.sound_thread.start()
             print('Deactivated - Inject a hatchery and the Macro Cycle Timers will start automatically')
+        elif key == reset_timers_hotkey:
+            timer.update_last_reset()
+            last_two_keys_pressed.clear()
+            print('Timers reset')
         elif key in camera_hotkeys:
             last_two_keys_pressed.append([key, datetime.now()])
         elif key.char == inject_hotkey:
@@ -133,7 +140,8 @@ def throbbing_rgb(on_off):
 
 
 def play_sound(sound=None):
-    playsound(sound)
+    if voice_alerts:
+        playsound(sound)
 
 
 def update_rgb():

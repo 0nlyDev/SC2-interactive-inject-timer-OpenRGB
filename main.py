@@ -15,7 +15,7 @@ client.clear()
 [d.set_mode('direct') for d in client.devices]
 
 camera_hotkeys = [Key.f1, Key.f2, Key.f3, Key.f4, Key.f5, Key.f6]
-stop_timers_hotkey = Key.f10
+stop_timers_hotkey = Key.f12
 reset_timers_hotkey = Key.f8
 inject_hotkey = 'w'
 voice_alerts = True

@@ -1,8 +1,8 @@
-import sys
 import threading
 import time
 from datetime import datetime, timedelta
 
+import configparser
 from pynput.keyboard import Key, Listener
 from openrgb import OpenRGBClient
 from openrgb.utils import RGBColor
@@ -23,7 +23,7 @@ minimum_time_window = timedelta(seconds=1.1)
 min_timer_value = 0
 cycle_length = timedelta(seconds=30)
 throbbing_frequency = timedelta(seconds=0.1)
-miss_click_tolerance = 2
+miss_click_tolerance = 1
 
 last_two_keys_pressed = []
 time_since_last_reset = 0
@@ -47,6 +47,56 @@ class Timer(object):
     def update_rbg_lights_off(self):
         self.rgb_time_off = datetime.now() + throbbing_frequency
         self.rgb_on_off = not self.rgb_on_off
+
+
+def removeInlineComments(cfgparser, delimiter):
+    for section in cfgparser.sections():
+        [cfgparser.set(section, item[0], item[1].split(delimiter)[0].strip()) for item in cfgparser.items(section)]
+
+
+def create_default_config():
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.optionxform = str
+    config['HOTKEYS'] = {';Make sure that the hotkeys listed bellow are not used in-game:': None,
+                         'Queen Inject': 'W',
+                         'Jump to Location 1': 'F1',
+                         'Jump to Location 2': 'F2',
+                         'Jump to Location 3': 'F3',
+                         'Jump to Location 4': 'F4',
+                         'Jump to Location 5': 'F5',
+                         'Jump to Location 6': 'F6',
+                         'Jump to Location 7': 'F7',
+                         'Jump to Location 8': 'F8',
+                         'Reset Timers': 'F9 ;Resets the Inject Cycle timer (you can use this in-game to quickly '
+                                         'reset the timers if you messed up somehow or at the star of the game when '
+                                         'you possibly don\'t use the camera hotkey yet)',
+                         'Stop Timers': 'F12 ;Resets and stops the Inject Cycle timer. To start again, just do '
+                                        'another Inject Cycle'}
+    config['ALERTS'] = {';Chose what type of alerts you want to use #': None,
+                        'RGB Lighting': 'On ;On/Off',
+                        '\tThrobbing Frequency': '0.1 ;Seconds',
+                        'Voice alerts': 'On ;On/Off'}
+    config['ADVANCED'] = {';Settings that changes the behaviour of how and when an Inject Cycle is registered:': None,
+                          'Inject Cooldown': '30 ;Seconds',
+                          'Miss-click Tolerance': '1 ;This value determines how many other keys you can press after '
+                                                  'you pressed the camera hotkey and the inject the hotkey and still '
+                                                  'register the sequence as valid inject cycle',
+                          'Maximum Time Window': '1.1 ;Seconds - This value specifies the maximum time between key '
+                                                 'presses that the program will register as valid inject cycle. If '
+                                                 'you find that your injects are not being registered, you can try to '
+                                                 'increase this value'
+                          }
+
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+
+
+def read_config_ini():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    removeInlineComments(config, ';')
+    print(config.sections())
+    print(config['ALERTS']['RGB Lighting'])
 
 
 def main():
@@ -180,5 +230,7 @@ def update_rgb():
 
 
 if __name__ == "__main__":
+    create_default_config()
+    read_config_ini()
     timer = Timer()
     main()

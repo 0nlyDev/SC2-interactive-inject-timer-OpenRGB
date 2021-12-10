@@ -3,7 +3,9 @@
 SC2 Interactive Inject Timer is a tool intended for Zerg players to help hit their macro/inject cycles on time for the (arguably) most widely-used method Queen box injects.
 It is completely within Blizzard's ToS, as it's not violating any rules, it's only listening for Keyboard inputs and that's how it tracks the inject cycles, but use at your own risk (don't blame me if something went wrong!)
 
-YouTube video link: [![SC2 Interactive Inject Timer (Voice and RGB Lighting alerts)](https://img.youtube.com/vi/wZ9UIYPd81s/0.jpg)](https://www.youtube.com/watch?v=wZ9UIYPd81s "SC2 Interactive Inject Timer (Voice and RGB Lighting alerts)")
+YouTube video link: 
+
+[![SC2 Interactive Inject Timer (Voice and RGB Lighting alerts)](https://img.youtube.com/vi/wZ9UIYPd81s/0.jpg)](https://www.youtube.com/watch?v=wZ9UIYPd81s "SC2 Interactive Inject Timer (Voice and RGB Lighting alerts)")
 
 Features:
 - Voice alerts

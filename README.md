@@ -15,14 +15,21 @@ Features:
 - Reset timers with one key press if you messed up your inject cycle somehow
 - Adjustable Hotkeys and timer settings
 
-Installation and Run:
+Installation ( Windows):
 - Clone the master repo
 - Check the config.ini and set up your hotkeys and desired settings (by default RGB Lighting is off, you can turn it On from there)
-  
 - (Only if you set "RGB Lighting" to "On" in the config.ini) -Install OpenRGB, check that your devices are recognized in OpenRGB (if they aren't, refer to OpenRGB documentation and F.A.Q. page)
-- Run the main.py in terminal with Python 3.7.x (you will probably get errors due to missing libraries first  - use pip to install the missing libraries one by one until the main.py script runs successfully)
-
-tip: when the script runs successfully, your peripherals should light up Blue if you've set "RGB Lighting" to "On" in the config.ini
+- Install Python 3.7.x from here: https://www.python.org/downloads/
+- Install pip, follow this guide: https://phoenixnap.com/kb/install-pip-windows (or google yourself how to install pip)
+- After you have installed pip run the following commands in terminal, one by one to install the needed libraries (the openrgb library is needed if you only use RGB Lighting):
+   - pip install configparser==5.2.0
+   - pip install keyboard==0.13.5
+   - pip install playsound==1.2.2
+   - pip install pynput==1.7.5
+   - pip install openrgb-python @ git+https://github.com/jath03/openrgb-python@033990a1881c66ad2f1352ec355448a59bddadf3
+- Now run the main.py in terminal with Python 3.7.x:
+  - with a command line, navigate to the folder where the main.py is located, using the "cd.." command to go up one folder and cd folder_name to enter the next folder
+  - once you are in the folder where the main.py is, run "python main.py" - this should start the script and you can start playing (Next time, you only run this command to start the script)
 
 tip: If you mess up the config.ini, just delete it and re-run the script, it will create it with default values
 

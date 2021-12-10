@@ -113,7 +113,7 @@ def read_config_ini():
         if len(v) > 1:
             hotkey = keyboard.HotKey.parse('<' + v.lower() + '>')[0]
         else:
-            hotkey = v.lower()
+            hotkey = keyboard.HotKey.parse(v.lower())[0]
         if k == 'queen inject':
             vals.inject_hotkey = hotkey
         elif k.startswith('jump'):

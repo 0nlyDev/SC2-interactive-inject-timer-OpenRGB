@@ -57,7 +57,7 @@ def create_default_config():
     config = configparser.ConfigParser(allow_no_value=True)
     config.optionxform = str
     config['HOTKEYS'] = {';Make sure that the hotkeys listed bellow are not used in-game (!combination of hotkeys like '
-                         '"shift+f1" are not accepted currently!):': None,
+                         '"shift+f1" currently are not accepted!):': None,
                          'Queen Inject': 'w',
                          'Jump to Location 1': 'f1',
                          'Jump to Location 2': 'f2',

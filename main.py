@@ -1,39 +1,38 @@
 import threading
 import time
+import os
 from datetime import datetime, timedelta
 
 import configparser
 from pynput.keyboard import Key, Listener
-from openrgb import OpenRGBClient
-from openrgb.utils import RGBColor
+from pynput import keyboard
 from playsound import playsound
-
-client = OpenRGBClient()
-print(client)
-print(client.devices)
-client.clear()
-[d.set_mode('direct') for d in client.devices]
-
-camera_hotkeys = [Key.f1, Key.f2, Key.f3, Key.f4, Key.f5, Key.f6]
-stop_timers_hotkey = Key.f12
-reset_timers_hotkey = Key.f8
-inject_hotkey = 'w'
-voice_alerts = True
-minimum_time_window = timedelta(seconds=1.1)
-min_timer_value = 0
-cycle_length = timedelta(seconds=30)
-throbbing_frequency = timedelta(seconds=0.1)
-miss_click_tolerance = 1
 
 last_two_keys_pressed = []
 time_since_last_reset = 0
 
 
+class Vals():
+    def __init__(self):
+        self.camera_hotkeys = []
+        self.stop_timers_hotkey = Key.f12
+        self.reset_timers_hotkey = Key.f8
+        self.inject_hotkey = 'w'
+        self.voice_alerts = True
+        self.maximum_time_window = timedelta(seconds=1.1)
+        self.min_timer_value = 0
+        self.cycle_length = timedelta(seconds=30)
+        self.throbbing_frequency = timedelta(seconds=0.1)
+        self.miss_click_tolerance = 1
+        self.use_rgb_lighting = True
+        self.user_voice_alerts = True
+
+
 class Timer(object):
     def __init__(self):
-        self.last_reset = datetime.now() + cycle_length
+        self.last_reset = datetime.now() + vals.cycle_length
         self.first_reset = False
-        self.rgb_time_off = datetime.now() + throbbing_frequency
+        self.rgb_time_off = datetime.now() + vals.throbbing_frequency
         self.rgb_on_off = True
         self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': ''})
 
@@ -41,11 +40,11 @@ class Timer(object):
         self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': sound})
 
     def update_last_reset(self):
-        self.last_reset = datetime.now() + cycle_length
+        self.last_reset = datetime.now() + vals.cycle_length
         self.first_reset = True
 
     def update_rbg_lights_off(self):
-        self.rgb_time_off = datetime.now() + throbbing_frequency
+        self.rgb_time_off = datetime.now() + vals.throbbing_frequency
         self.rgb_on_off = not self.rgb_on_off
 
 
@@ -57,24 +56,28 @@ def removeInlineComments(cfgparser, delimiter):
 def create_default_config():
     config = configparser.ConfigParser(allow_no_value=True)
     config.optionxform = str
-    config['HOTKEYS'] = {';Make sure that the hotkeys listed bellow are not used in-game:': None,
-                         'Queen Inject': 'W',
-                         'Jump to Location 1': 'F1',
-                         'Jump to Location 2': 'F2',
-                         'Jump to Location 3': 'F3',
-                         'Jump to Location 4': 'F4',
-                         'Jump to Location 5': 'F5',
-                         'Jump to Location 6': 'F6',
-                         'Jump to Location 7': 'F7',
-                         'Jump to Location 8': 'F8',
-                         'Reset Timers': 'F9 ;Resets the Inject Cycle timer (you can use this in-game to quickly '
+    config['HOTKEYS'] = {';Make sure that the hotkeys listed bellow are not used in-game (!combination of hotkeys like '
+                         '"shift+f1" are not accepted currently!):': None,
+                         'Queen Inject': 'w',
+                         'Jump to Location 1': 'f1',
+                         'Jump to Location 2': 'f2',
+                         'Jump to Location 3': 'f3',
+                         'Jump to Location 4': 'f4',
+                         'Jump to Location 5': 'f5',
+                         'Jump to Location 6': 'f6',
+                         'Jump to Location 7': 'f7',
+                         'Jump to Location 8': 'f8',
+                         'Reset Timers': 'f9 ;Resets the Inject Cycle timer (you can use this in-game to quickly '
                                          'reset the timers if you messed up somehow or at the star of the game when '
                                          'you possibly don\'t use the camera hotkey yet)',
-                         'Stop Timers': 'F12 ;Resets and stops the Inject Cycle timer. To start again, just do '
+                         'Stop Timers': 'f12 ;Resets and stops the Inject Cycle timer. To start again, just do '
                                         'another Inject Cycle'}
     config['ALERTS'] = {';Chose what type of alerts you want to use #': None,
-                        'RGB Lighting': 'On ;On/Off',
-                        '\tThrobbing Frequency': '0.1 ;Seconds',
+                        'RGB Lighting': 'Off ;On/Off - By default it\'s set to "Off", if you want to use RGB '
+                                        'Lighting, you will have to download and install OpenRGB first, then run it '
+                                        'and make sure that your devices are detect in OpenRGB, then start the SDK '
+                                        'Server from OpenRGB and only then run the script',
+                        'Throbbing Frequency': '0.1 ;Seconds',
                         'Voice alerts': 'On ;On/Off'}
     config['ADVANCED'] = {';Settings that changes the behaviour of how and when an Inject Cycle is registered:': None,
                           'Inject Cooldown': '30 ;Seconds',
@@ -96,7 +99,46 @@ def read_config_ini():
     config.read('config.ini')
     removeInlineComments(config, ';')
     print(config.sections())
-    print(config['ALERTS']['RGB Lighting'])
+
+    for k, v in config['HOTKEYS'].items():
+        if len(v) > 1:
+            hotkey = keyboard.HotKey.parse('<' + v.lower() + '>')[0]
+        else:
+            hotkey = v.lower()
+        if k == 'queen inject':
+            vals.inject_hotkey = hotkey
+        elif k.startswith('jump'):
+            vals.camera_hotkeys.append(hotkey)
+        elif k == 'reset timers':
+            vals.reset_timers_hotkey = hotkey
+        elif k == 'stop timers':
+            vals.stop_timers_hotkey = hotkey
+
+    for k, v in config['ALERTS'].items():
+        if k == 'rgb lighting':
+            if v.lower() != 'on':
+                vals.use_rgb_lighting = False
+        elif k == 'throbbing frequency':
+            if v.replace('.', '').isdigit():
+                vals.throbbing_frequency = timedelta(seconds=float(v))
+        elif k == 'voice alerts':
+            if v.lower() != 'on':
+                vals.user_voice_alerts = False
+
+    for k, v in config['ADVANCED'].items():
+        if k == 'inject cooldown':
+            if v.replace('.', '').isdigit():
+                vals.cycle_length = timedelta(seconds=float(v))
+                print(vals.cycle_length)
+        if k == 'maximum time window':
+            if v.replace('.', '').isdigit():
+                vals.maximum_time_window = timedelta(seconds=float(v))
+                print(vals.cycle_length)
+        if k == 'miss-click tolerance':
+            if v.isdigit():
+                vals.miss_click_tolerance = int(v)
+
+        print(vals.maximum_time_window, vals.miss_click_tolerance)
 
 
 def main():
@@ -110,33 +152,33 @@ def main():
 def get_key(key):
     # print('Key pressed:', key)
     try:
-        if key == stop_timers_hotkey:
+        if key == vals.stop_timers_hotkey:
             timer.first_reset = False
             last_two_keys_pressed.clear()
             timer.create_sound_thread(r'sounds\\deactivated.wav')
             timer.sound_thread.start()
             print('Deactivated - Inject a hatchery and the Macro Cycle Timers will start automatically')
-        elif key == reset_timers_hotkey:
+        elif key == vals.reset_timers_hotkey:
             timer.update_last_reset()
             last_two_keys_pressed.clear()
             print('Timers reset')
-        elif key in camera_hotkeys:
+        elif key in vals.camera_hotkeys:
             last_two_keys_pressed.append([key, datetime.now()])
-        elif key.char == inject_hotkey:
+        elif key.char == vals.inject_hotkey:
             last_two_keys_pressed.append([key.char, datetime.now()])
         else:
             last_two_keys_pressed.append([key, datetime.now()])
     except AttributeError:
         pass
 
-    del last_two_keys_pressed[:-(miss_click_tolerance + 2)]  # truncate list
+    del last_two_keys_pressed[:-(vals.miss_click_tolerance + 2)]  # truncate list
     reset_cycle()
 
 
 def reset_cycle():
     now = datetime.now()
-    camera_hotkey_log = [i for i in last_two_keys_pressed if i[0] in camera_hotkeys]
-    inject_hotkey_log = [i for i in last_two_keys_pressed if i[0] == inject_hotkey]
+    camera_hotkey_log = [i for i in last_two_keys_pressed if i[0] in vals.camera_hotkeys]
+    inject_hotkey_log = [i for i in last_two_keys_pressed if i[0] == vals.inject_hotkey]
 
     try:
         youngest_ind = max(ind for ind, dt in enumerate(camera_hotkey_log) if dt[1] <= now)
@@ -153,11 +195,11 @@ def reset_cycle():
     if camera_hotkey_log != [] and inject_hotkey_log != []:
         keys_pressed_time_difference = inject_hotkey_log[1] - camera_hotkey_log[1]
         if camera_hotkey_log[1] < inject_hotkey_log[1]:
-            if keys_pressed_time_difference <= minimum_time_window:
+            if keys_pressed_time_difference <= vals.maximum_time_window:
                 if now >= timer.last_reset or timer.first_reset is False:
                     inject_delay = (datetime.now() - timer.last_reset).total_seconds()
                     print('!!!QUEEN INJECT DETECTED - MACRO CYCLE COUNTDOWN STARTED!!! {} seconds'
-                          .format(cycle_length.total_seconds()))
+                          .format(vals.cycle_length.total_seconds()))
                     if timer.first_reset:
                         print('You are late on your Queen Injects by {} seconds'.format(inject_delay))
                     timer.update_last_reset()
@@ -167,14 +209,14 @@ def reset_cycle():
                     print(time_remaining_till_next_cycle_reset, 'Seconds remaining before next macro cycle')
             elif now >= timer.last_reset:
                 print('Too slow, minimum time from Camera keybind and Inject keybind is',
-                      str(minimum_time_window.total_seconds()) + 'sec')
+                      str(vals.maximum_time_window.total_seconds()) + 'sec')
         # else:
         #     print('Incorrect order of key presses, to detect Inject cycle, frst press Camera keybind, followed by '
         #           'Inject keybind')
 
 
 def normalize_and_clamp(val, min_val, max_val, min_clamp, max_clamp):
-    normalized = (val - min_val) / (max_val - min_timer_value)
+    normalized = (val - min_val) / (max_val - vals.min_timer_value)
     normalized = int(float(255) * normalized)
     if normalized < min_clamp:
         normalized = min_clamp
@@ -190,18 +232,17 @@ def throbbing_rgb(on_off):
 
 
 def play_sound(sound=None):
-    if voice_alerts:
+    if vals.voice_alerts:
         playsound(sound)
 
 
 def update_rgb():
-    # run continuous
     while True:
         time.sleep(0.1)
         time_remaining_till_next_cycle_reset = (timer.last_reset - datetime.now()).total_seconds()
         # print('time_remaining_till_next_cycle_reset', time_remaining_till_next_cycle_reset)
         if time_remaining_till_next_cycle_reset <= 0 or timer.first_reset is False:
-            if (datetime.now() - timer.rgb_time_off) > throbbing_frequency:
+            if (datetime.now() - timer.rgb_time_off) > vals.throbbing_frequency:
                 timer.update_rbg_lights_off()
             red_val = 255
             blue_val = 0
@@ -218,19 +259,33 @@ def update_rgb():
             if not timer.first_reset:
                 red_val = green_val = 0
                 blue_val = 255
-            client.set_color(RGBColor(red_val, green_val, blue_val))
+            if vals.use_rgb_lighting:
+                client.set_color(RGBColor(red_val, green_val, blue_val))
         else:
-            time_passed_from_last_cycle_reset = cycle_length.total_seconds() - time_remaining_till_next_cycle_reset
-            red_val = normalize_and_clamp(time_passed_from_last_cycle_reset, min_timer_value,
-                                          cycle_length.total_seconds(), 0, 255)
-            green_val = normalize_and_clamp(time_remaining_till_next_cycle_reset, min_timer_value,
-                                            cycle_length.total_seconds(), 0,
+            time_passed_from_last_cycle_reset = vals.cycle_length.total_seconds() - time_remaining_till_next_cycle_reset
+            red_val = normalize_and_clamp(time_passed_from_last_cycle_reset, vals.min_timer_value,
+                                          vals.cycle_length.total_seconds(), 0, 255)
+            green_val = normalize_and_clamp(time_remaining_till_next_cycle_reset, vals.min_timer_value,
+                                            vals.cycle_length.total_seconds(), 0,
                                             255)
-            client.set_color(RGBColor(red_val, green_val, 0))
+            if vals.use_rgb_lighting:
+                client.set_color(RGBColor(red_val, green_val, 0))
 
 
 if __name__ == "__main__":
-    create_default_config()
+    vals = Vals()
+    if not os.path.isfile('config.ini'):
+        create_default_config()
     read_config_ini()
+    if vals.use_rgb_lighting:
+        from openrgb import OpenRGBClient
+        from openrgb.utils import RGBColor
+
+        client = OpenRGBClient()
+        print(client)
+        print(client.devices)
+        client.clear()
+        [d.set_mode('direct') for d in client.devices]
+
     timer = Timer()
     main()

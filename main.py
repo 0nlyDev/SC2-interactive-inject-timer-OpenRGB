@@ -24,6 +24,7 @@ class Vals():
 
         self.use_voice_alerts = True
         self.min_time_between_next_voice_alert = timedelta(seconds=5)
+        self.time_since_last_voice_alert = datetime.now() - self.min_time_between_next_voice_alert
 
         self.use_rgb_lighting = True
         self.throbbing_frequency = timedelta(seconds=0.1)
@@ -60,6 +61,7 @@ def removeInlineComments(cfgparser, delimiter):
 def create_default_config():
     config = configparser.ConfigParser(allow_no_value=True)
     config.optionxform = str
+    config['NOTES'] = {';The main.py script must be restarted for any changes to take effect made to this file': None}
     config['HOTKEYS'] = {';Make sure that the hotkeys listed bellow are not used in-game (!combination of hotkeys like '
                          '"shift+f1" currently are not accepted!):': None,
                          'Queen Inject': 'w',
@@ -82,7 +84,11 @@ def create_default_config():
                                         'and make sure that your devices are detect in OpenRGB, then start the SDK '
                                         'Server from OpenRGB and only then run the script',
                         'Throbbing Frequency': '0.1 ;Seconds',
-                        'Voice alerts': 'On ;On/Off'}
+                        'Voice Alerts': 'On ;On/Off',
+                        'Minimum Time Between Voice Alerts': '5 ;Seconds - If you want to have only 1 voice alert per '
+                                                             'inject cycle, set this value to the same value as the '
+                                                             '"Inject Cooldown" bellow. If you want annoying voice '
+                                                             'alert without a delay, set this value to 0'}
     config['ADVANCED'] = {';Settings that changes the behaviour of how and when an Inject Cycle is registered:': None,
                           'Inject Cooldown': '30 ;Seconds',
                           'Miss-click Tolerance': '1 ;This value determines how many other keys you can press after '
@@ -127,6 +133,9 @@ def read_config_ini():
         elif k == 'voice alerts':
             if v.lower() != 'on':
                 vals.use_voice_alerts = False
+        elif k == 'minimum time between voice alerts':
+            if v.replace('.', '').isdigit():
+                vals.min_time_between_next_voice_alert = timedelta(seconds=float(v))
 
     for k, v in config['ADVANCED'].items():
         if k == 'inject cooldown':
@@ -232,7 +241,13 @@ def throbbing_rgb(on_off):
 
 def play_sound(sound=None):
     if vals.use_voice_alerts:
-        playsound(sound)
+        if 'inject.wav' in sound:
+            time_until_next_voice_alert = (datetime.now() - vals.time_since_last_voice_alert).total_seconds()
+            if time_until_next_voice_alert >= vals.min_time_between_next_voice_alert.total_seconds():
+                vals.time_since_last_voice_alert = datetime.now()
+                playsound(sound)
+        else:
+            playsound(sound)
 
 
 def update_rgb():

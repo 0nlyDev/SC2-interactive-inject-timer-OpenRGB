@@ -98,7 +98,6 @@ def read_config_ini():
     config = configparser.ConfigParser()
     config.read('config.ini')
     removeInlineComments(config, ';')
-    print(config.sections())
 
     for k, v in config['HOTKEYS'].items():
         if len(v) > 1:
@@ -129,16 +128,12 @@ def read_config_ini():
         if k == 'inject cooldown':
             if v.replace('.', '').isdigit():
                 vals.cycle_length = timedelta(seconds=float(v))
-                print(vals.cycle_length)
         if k == 'maximum time window':
             if v.replace('.', '').isdigit():
                 vals.maximum_time_window = timedelta(seconds=float(v))
-                print(vals.cycle_length)
         if k == 'miss-click tolerance':
             if v.isdigit():
                 vals.miss_click_tolerance = int(v)
-
-        print(vals.maximum_time_window, vals.miss_click_tolerance)
 
 
 def main():

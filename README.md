@@ -7,9 +7,9 @@ https://youtu.be/wZ9UIYPd81s
 Features:
 - Voice alerts
 - Light indicators on your peripherals RGB Lighting(Keyboard, Mouse or other software controllable devices with RGB lighting)
-- Log for your inject timings (to be implemented as a text file, currently only available in the terminal output)
+- Logs inject timings, to check how late you are on your injects (to be implemented as a text file, currently only available in the terminal output)
 - Automatic start of timers from the time of your first inject
-- Reset timers manually if the program, or you messed up somehow
+- Reset timers with one key press if you messed up your inject cycle somehow
 - Adjustable Hotkeys and timer settings
 
 Installation and Run:

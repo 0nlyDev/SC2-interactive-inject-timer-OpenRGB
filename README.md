@@ -18,7 +18,7 @@ Features:
 Installation ( Windows):
 - Clone the master repo
 - Check the config.ini and set up your hotkeys and desired settings (by default RGB Lighting is off, you can turn it On from there)
-- (Only if you set "RGB Lighting" to "On" in the config.ini) -Install OpenRGB, check that your devices are recognized in OpenRGB (if they aren't, refer to OpenRGB documentation and F.A.Q. page)
+- (Only if you set "RGB Lighting" to "On" in the config.ini) -Install OpenRGB v0.61 or later from https://openrgb.org/ and check that your devices are recognized in OpenRGB (if they aren't, refer to OpenRGB documentation and F.A.Q. page)
 - Install Python 3.7.x from here: https://www.python.org/downloads/
 - Install pip, follow this guide: https://phoenixnap.com/kb/install-pip-windows (or google yourself how to install pip)
 - After you have installed pip run the following commands in terminal, one by one to install the needed libraries (the openrgb-python library is needed if you only use RGB Lighting):

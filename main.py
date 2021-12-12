@@ -161,7 +161,7 @@ def get_key(key):
     # print('Key pressed:', key)
     try:
         key = keyboard.HotKey.parse(key.char)[0]
-    except AttributeError:
+    except AttributeError or TypeError:
         pass
 
     try:

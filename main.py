@@ -160,6 +160,11 @@ def main():
 def get_key(key):
     # print('Key pressed:', key)
     try:
+        key = keyboard.HotKey.parse(key.char)[0]
+    except AttributeError:
+        pass
+
+    try:
         if key == vals.stop_timers_hotkey:
             timer.first_reset = False
             last_two_keys_pressed.clear()
@@ -172,11 +177,12 @@ def get_key(key):
             print('Timers reset')
         elif key in vals.camera_hotkeys:
             last_two_keys_pressed.append([key, datetime.now()])
-        elif key.char == vals.inject_hotkey:
-            last_two_keys_pressed.append([key.char, datetime.now()])
+        elif key == vals.inject_hotkey:
+            last_two_keys_pressed.append([key, datetime.now()])
         else:
             last_two_keys_pressed.append([key, datetime.now()])
     except AttributeError:
+        print('failed', key)
         pass
 
     del last_two_keys_pressed[:-(vals.miss_click_tolerance + 2)]  # truncate list

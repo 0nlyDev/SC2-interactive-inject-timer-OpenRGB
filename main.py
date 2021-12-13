@@ -162,6 +162,9 @@ def get_key(key):
     if hasattr(key, 'vk') and  96 <= key.vk <= 105:  # if numpad key
         print(key, 'Is a numpad key and are currently not supported.')
         return
+    elif str(key).startswith('<') and str(key).endswith('>') and str(key)[1:-2].isdigit():
+        # print(key, 'Is ctrl+number combination, not currently supported')
+        return
     try:
         key = keyboard.HotKey.parse(key.char)[0]
         print(key)

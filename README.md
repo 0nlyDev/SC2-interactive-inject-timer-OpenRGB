@@ -16,9 +16,9 @@ Features:
 - Adjustable Hotkeys and timer settings
 
 Installation ( Windows):
-- Clone the master repo
+- Clone the master repo (rename the folder to something short like "sc2inject", -one user reported sound was not playing if the name was too long)
 - Check the config.ini and set up your hotkeys and desired settings (by default RGB Lighting is off, you can turn it On from there)
-- (Only if you set "RGB Lighting" to "On" in the config.ini) -Install OpenRGB v0.61 or later from https://openrgb.org/ and check that your devices are recognized in OpenRGB (if they aren't, refer to OpenRGB documentation and F.A.Q. page)
+- Install OpenRGB (Only if you plan to use RGB Lighting - for me v0.61 more stable, even though it's experimental) from https://openrgb.org/ and check that your devices are recognized in OpenRGB (if they aren't, refer to OpenRGB documentation and F.A.Q. page)
 - Install Python 3.7.x from here: https://www.python.org/downloads/
 - Install pip, follow this guide: https://phoenixnap.com/kb/install-pip-windows (or google yourself how to install pip)
 - After you have installed pip run the following commands in terminal, one by one to install the needed libraries (the openrgb-python library is needed if you only use RGB Lighting):

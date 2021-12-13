@@ -159,9 +159,13 @@ def main():
 
 def get_key(key):
     # print('Key pressed:', key)
+    if hasattr(key, 'vk') and  96 <= key.vk <= 105:  # if numpad key
+        print(key, 'Is a numpad key and are currently not supported.')
+        return
     try:
         key = keyboard.HotKey.parse(key.char)[0]
-    except AttributeError or TypeError:
+        print(key)
+    except AttributeError:
         pass
 
     try:

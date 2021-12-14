@@ -12,6 +12,7 @@ Features:
 - Light indicators on your peripherals RGB Lighting(Keyboard, Mouse or other software controllable devices with RGB lighting)
 - Logs inject timings, to check how late you are on your injects (to be implemented as a text file, currently only availaCancel changesble in the terminal output)
 - Automatic start of timers from the time of your first inject
+- Pre-Inject alert (Off by default - see confing.ini)
 - Reset timers with one key press if you messed up your inject cycle somehow
 - Adjustable Hotkeys and timer settings
 

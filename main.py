@@ -87,7 +87,7 @@ def create_default_config():
                                         'Server from OpenRGB and only then run the script',
                         'Throbbing Frequency': '0.1 ;Seconds',
                         'Voice Alerts': 'On ;On/Off',
-                        'Use Pre-Inject Reminder': 'On ;On/Off - If On, it will play a bell sound before the inject '
+                        'Use Pre-Inject Reminder': 'Off ;On/Off - If On, it will play a bell sound before the inject '
                                                    'reminder (see "Pre-Inject Reminder" to set your desired value '
                                                    'bellow) - it requires Voice Alerts to be set to On',
                         'Minimum Time Between Voice Alerts': '5 ;Seconds - If you want to have only 1 voice alert per '

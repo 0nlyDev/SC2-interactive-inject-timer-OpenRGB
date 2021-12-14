@@ -14,7 +14,8 @@ time_since_last_reset = 0
 
 class Vals():
     def __init__(self):
-        self.timer_length = timedelta(seconds=30)  # Time between injects
+        self.inject_cooldown = timedelta(seconds=30)  # Time between injects
+        self.pre_inject_reminder = 2
         self.min_timer_value = 0
 
         self.inject_hotkey = 'w'
@@ -35,17 +36,18 @@ class Vals():
 
 class Timer(object):
     def __init__(self):
-        self.last_reset = datetime.now() + vals.timer_length
+        self.last_reset = datetime.now() + vals.inject_cooldown
         self.first_reset = False
         self.rgb_time_off = datetime.now() + vals.throbbing_frequency
         self.rgb_on_off = True
         self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': ''})
+        self.reminder_played = False
 
     def create_sound_thread(self, sound):
         self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': sound})
 
     def update_last_reset(self):
-        self.last_reset = datetime.now() + vals.timer_length
+        self.last_reset = datetime.now() + vals.inject_cooldown
         self.first_reset = True
 
     def update_rbg_lights_off(self):
@@ -85,12 +87,19 @@ def create_default_config():
                                         'Server from OpenRGB and only then run the script',
                         'Throbbing Frequency': '0.1 ;Seconds',
                         'Voice Alerts': 'On ;On/Off',
+                        'Use Pre-Inject Reminder': 'On ;On/Off - If On, it will play a bell sound before the inject '
+                                                   'reminder (see "Pre-Inject Reminder" to set your desired value '
+                                                   'bellow) - it requires Voice Alerts to be set to On',
                         'Minimum Time Between Voice Alerts': '5 ;Seconds - If you want to have only 1 voice alert per '
                                                              'inject cycle, set this value to the same value as the '
                                                              '"Inject Cooldown" bellow. If you want annoying voice '
                                                              'alert without a delay, set this value to 0'}
     config['ADVANCED'] = {';Settings that changes the behaviour of how and when an Inject Cycle is registered:': None,
                           'Inject Cooldown': '30 ;Seconds',
+                          'Pre-Inject Reminder': '4 ;Seconds before the Inject Cooldown alert, plays a bell sound. '
+                                                 'Useful to remind you to spend larvae before the inject cycle (for '
+                                                 'more efficient larvae spendings/production), if you change this '
+                                                 'value, make sure it\'s not greater than the "Inject Cooldown" value',
                           'Miss-click Tolerance': '1 ;This value determines how many other keys you can press after '
                                                   'you pressed the camera hotkey and the inject the hotkey and still '
                                                   'register the sequence as valid inject cycle',
@@ -140,7 +149,10 @@ def read_config_ini():
     for k, v in config['ADVANCED'].items():
         if k == 'inject cooldown':
             if v.replace('.', '').isdigit():
-                vals.timer_length = timedelta(seconds=float(v))
+                vals.inject_cooldown = timedelta(seconds=float(v))
+        if k == 'pre-inject reminder':
+            if v.replace('.', '').isdigit():
+                vals.pre_inject_reminder =  float(v)
         if k == 'maximum time window':
             if v.replace('.', '').isdigit():
                 vals.max_time_between_keyboard_inputs = timedelta(seconds=float(v))
@@ -159,7 +171,7 @@ def main():
 
 def get_key(key):
     # print('Key pressed:', key)
-    if hasattr(key, 'vk') and  96 <= key.vk <= 105:  # if numpad key
+    if hasattr(key, 'vk') and 96 <= key.vk <= 105:  # if numpad key
         print(key, 'Is a numpad key and are currently not supported.')
         return
     elif str(key).startswith('<') and str(key).endswith('>') and str(key)[1:-2].isdigit():
@@ -181,6 +193,7 @@ def get_key(key):
         elif key == vals.reset_timers_hotkey:
             timer.update_last_reset()
             last_two_keys_pressed.clear()
+            timer.reminder_played = False
             print('Timers reset')
         elif key in vals.camera_hotkeys:
             last_two_keys_pressed.append([key, datetime.now()])
@@ -219,8 +232,9 @@ def reset_cycle():
             if keys_pressed_time_difference <= vals.max_time_between_keyboard_inputs:
                 if now >= timer.last_reset or timer.first_reset is False:
                     inject_delay = (datetime.now() - timer.last_reset).total_seconds()
+                    timer.reminder_played = False
                     print('!!!QUEEN INJECT DETECTED - MACRO CYCLE COUNTDOWN STARTED!!! {} seconds'
-                          .format(vals.timer_length.total_seconds()))
+                          .format(vals.inject_cooldown.total_seconds()))
                     if timer.first_reset:
                         print('You are late on your Queen Injects by {} seconds'.format(inject_delay))
                     timer.update_last_reset()
@@ -268,6 +282,11 @@ def update_rgb():
         time.sleep(0.1)
         time_remaining_till_next_cycle_reset = (timer.last_reset - datetime.now()).total_seconds()
         # print('time_remaining_till_next_cycle_reset', time_remaining_till_next_cycle_reset)
+        if time_remaining_till_next_cycle_reset - vals.pre_inject_reminder <= 0 and timer.first_reset:
+            if not timer.reminder_played:
+                timer.create_sound_thread(r'sounds\\bell.wav')
+                timer.sound_thread.start()
+                timer.reminder_played = True
         if time_remaining_till_next_cycle_reset <= 0 or timer.first_reset is False:
             if (datetime.now() - timer.rgb_time_off) > vals.throbbing_frequency:
                 timer.update_rbg_lights_off()
@@ -276,8 +295,9 @@ def update_rgb():
             if timer.first_reset:
                 red_val = throbbing_rgb(timer.rgb_on_off)
                 print('!!!INJECT!!!')
-                if not timer.sound_thread.is_alive():
+                if not timer.sound_thread.is_alive() or timer.sound_thread.getName() != 'inject_thread':
                     timer.create_sound_thread(r'sounds\\inject.wav')
+                    timer.sound_thread.setName('inject_thread')
                     timer.sound_thread.start()
             if red_val == 255:
                 green_val = 0
@@ -289,11 +309,12 @@ def update_rgb():
             if vals.use_rgb_lighting:
                 client.set_color(RGBColor(red_val, green_val, blue_val))
         else:
-            time_passed_from_last_cycle_reset = vals.timer_length.total_seconds() - time_remaining_till_next_cycle_reset
+            time_passed_from_last_cycle_reset = vals.inject_cooldown.total_seconds() - \
+                                                time_remaining_till_next_cycle_reset
             red_val = normalize_and_clamp(time_passed_from_last_cycle_reset, vals.min_timer_value,
-                                          vals.timer_length.total_seconds(), 0, 255)
+                                          vals.inject_cooldown.total_seconds(), 0, 255)
             green_val = normalize_and_clamp(time_remaining_till_next_cycle_reset, vals.min_timer_value,
-                                            vals.timer_length.total_seconds(), 0,
+                                            vals.inject_cooldown.total_seconds(), 0,
                                             255)
             if vals.use_rgb_lighting:
                 client.set_color(RGBColor(red_val, green_val, 0))

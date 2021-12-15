@@ -10,7 +10,7 @@ YouTube video link (the video presentation is a bit outdated, many features and 
 Features:
 - Voice alerts
 - Pre-Inject alert (Off by default - see confing.ini)
-- Light indicators on your peripherals RGB Lighting(Keyboard, Mouse or other software controllable devices with RGB lighting)
+- Light indicators on your peripherals RGB Lighting (Keyboard, Mouse or other software controllable devices with RGB lighting, Off by default - see confing.ini)
 - Logs inject timings, to check how late you are on your injects (to be implemented as a text file, currently only available in the terminal output)
 - Automatic start of timers from the time of your first inject
 - Automatic adjustment of the timers for delayed inject

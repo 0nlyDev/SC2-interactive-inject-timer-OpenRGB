@@ -46,8 +46,8 @@ class Timer(object):
     def create_sound_thread(self, sound):
         self.sound_thread = threading.Thread(target=play_sound, kwargs={'sound': sound})
 
-    def update_last_reset(self):
-        self.last_reset = datetime.now() + vals.inject_cooldown
+    def update_last_reset(self, delay=float(0)):
+        self.last_reset = datetime.now() + vals.inject_cooldown - timedelta(seconds=delay)
         self.first_reset = True
 
     def update_rbg_lights_off(self):
@@ -95,7 +95,7 @@ def create_default_config():
                                                              '"Inject Cooldown" bellow. If you want annoying voice '
                                                              'alert without a delay, set this value to 0'}
     config['ADVANCED'] = {';Settings that changes the behaviour of how and when an Inject Cycle is registered:': None,
-                          'Inject Cooldown': '30 ;Seconds',
+                          'Inject Cooldown': '31 ;Seconds',
                           'Pre-Inject Reminder': '4 ;Seconds before the Inject Cooldown alert, plays a bell sound. '
                                                  'Useful to remind you to spend larvae before the inject cycle (for '
                                                  'more efficient larvae spendings/production), if you change this '
@@ -194,7 +194,10 @@ def get_key(key):
             timer.update_last_reset()
             last_two_keys_pressed.clear()
             timer.reminder_played = False
-            print('Timers reset')
+            print('!!!TIMERS RESET - MACRO CYCLE COUNTDOWN STARTED!!! {} seconds remaining...'
+                  .format(vals.inject_cooldown.total_seconds()))
+            timer.create_sound_thread(r'sounds\\pop.wav')
+            timer.sound_thread.start()
         elif key in vals.camera_hotkeys:
             last_two_keys_pressed.append([key, datetime.now()])
         elif key == vals.inject_hotkey:
@@ -231,13 +234,18 @@ def reset_cycle():
         if camera_hotkey_log[1] < inject_hotkey_log[1]:
             if keys_pressed_time_difference <= vals.max_time_between_keyboard_inputs:
                 if now >= timer.last_reset or timer.first_reset is False:
-                    inject_delay = (datetime.now() - timer.last_reset).total_seconds()
+                    if not timer.first_reset:
+                        inject_delay = float(0)
+                    else:
+                        inject_delay = (datetime.now() - timer.last_reset).total_seconds()
                     timer.reminder_played = False
-                    print('!!!QUEEN INJECT DETECTED - MACRO CYCLE COUNTDOWN STARTED!!! {} seconds'
-                          .format(vals.inject_cooldown.total_seconds()))
+                    print('!!!QUEEN INJECT DETECTED - MACRO CYCLE COUNTDOWN STARTED!!! {} seconds remaining...'
+                          .format(vals.inject_cooldown.total_seconds() - inject_delay))
                     if timer.first_reset:
                         print('You are late on your Queen Injects by {} seconds'.format(inject_delay))
-                    timer.update_last_reset()
+                        timer.update_last_reset(inject_delay)
+                    else:
+                        timer.update_last_reset()
                     last_two_keys_pressed.clear()
                 else:
                     time_remaining_till_next_cycle_reset = (timer.last_reset - now).total_seconds()

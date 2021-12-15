@@ -9,11 +9,12 @@ YouTube video link:
 
 Features:
 - Voice alerts
-- Light indicators on your peripherals RGB Lighting(Keyboard, Mouse or other software controllable devices with RGB lighting)
-- Logs inject timings, to check how late you are on your injects (to be implemented as a text file, currently only availaCancel changesble in the terminal output)
-- Automatic start of timers from the time of your first inject
 - Pre-Inject alert (Off by default - see confing.ini)
-- Reset timers with one key press if you messed up your inject cycle somehow
+- Light indicators on your peripherals RGB Lighting(Keyboard, Mouse or other software controllable devices with RGB lighting)
+- Logs inject timings, to check how late you are on your injects (to be implemented as a text file, currently only available in the terminal output)
+- Automatic start of timers from the time of your first inject
+- Automatic adjustment of the timers for delayed inject
+- Reset timers with a Hotkey if you messed up your inject cycle somehow
 - Adjustable Hotkeys and timer settings
 
 Installation ( Windows):
@@ -34,4 +35,6 @@ Installation ( Windows):
 
 tip: If you mess up the config.ini, just delete it and re-run the script, it will create it with default values
 
-Please submit an issue if you find a bug or if you have a suggestion.
+Submit an issue if you find a bug please and your feedback is welcomed. 
+
+Say Hi if you get matched against me on ladder, in-game name is Abaddon and playing with Zerg as always! :) 
